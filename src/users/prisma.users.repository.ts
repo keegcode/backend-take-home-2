@@ -2,6 +2,8 @@ import { PrismaClient } from '@prisma/client';
 import { UserEntity } from './users.entity';
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { UsersRepository } from './users.repository';
+import { encodePassword } from '../../utils/encode-password';
+import { comparePasswords } from '../../utils/compare-passwords';
 
 @Injectable()
 export class PrismaUsersRepository
@@ -12,10 +14,11 @@ export class PrismaUsersRepository
                 await this.$connect();
         }
 
-        createUser(name: string, password: string): Promise<UserEntity> {
+        async createUser(name: string, password: string): Promise<UserEntity> {
+                const { hash, salt } = await encodePassword(password);
                 return this.user.create({
                         select: { id: true, name: true },
-                        data: { name, password },
+                        data: { name, password: hash, salt },
                 });
         }
 
@@ -30,9 +33,20 @@ export class PrismaUsersRepository
                 name: string,
                 password?: string,
         ): Promise<boolean> {
+                const where = { name };
+
                 const user = await this.user.findFirst({
-                        where: { name, password },
+                        where,
+                        select: { password: true, salt: true },
                 });
+
+                if (user && password) {
+                        return comparePasswords(password, {
+                                hash: user.password,
+                                salt: user.salt,
+                        });
+                }
+
                 return Boolean(user);
         }
 }

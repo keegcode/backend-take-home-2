@@ -16,9 +16,6 @@ export class UsersService {
                 name: string,
                 password: string,
         ): Promise<boolean> {
-                return this.usersRepository.checkIfUserExists(
-                        name,
-                        password,
-                );
+                return this.usersRepository.checkIfUserExists(name, password);
         }
 }
