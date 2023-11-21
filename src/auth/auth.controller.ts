@@ -1,4 +1,4 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Post, UnauthorizedException } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { SignInDto, SignOutDto, SignUpDto } from './dto';
 import { UsersService } from '../users/users.service';
@@ -19,7 +19,16 @@ export class AuthController {
 
         @Post('sign-in')
         async signIn(@Body() body: SignInDto): Promise<boolean> {
-                return this.service.checkIfUserExists(body.name, body.password);
+                const user = await this.service.checkIfUserExists(
+                        body.name,
+                        body.password,
+                );
+
+                if (!user) {
+                        throw new UnauthorizedException();
+                }
+
+                return user;
         }
 
         @Post('sign-out')

@@ -1,6 +1,7 @@
 import { Inject } from '@nestjs/common';
 import { UsersRepository } from './users.repository';
 import { UserEntity } from './users.entity';
+import { UserAlreadyExistsException } from './user-already-exists.exception';
 
 export class UsersService {
         constructor(
@@ -8,7 +9,14 @@ export class UsersService {
                 private readonly usersRepository: UsersRepository,
         ) {}
 
-        createUser(name: string, password: string): Promise<UserEntity> {
+        async createUser(name: string, password: string): Promise<UserEntity> {
+                const duplicateExists =
+                        await this.usersRepository.checkIfUserExists(name);
+
+                if (duplicateExists) {
+                        throw new UserAlreadyExistsException(name);
+                }
+
                 return this.usersRepository.createUser(name, password);
         }
 
