@@ -1,7 +1,8 @@
 import { PrismaClient } from '@prisma/client';
 import { UserEntity } from './users.entity';
-import { OnModuleInit } from '@nestjs/common';
+import { Injectable, OnModuleInit } from '@nestjs/common';
 
+@Injectable()
 export class UsersRepository extends PrismaClient implements OnModuleInit {
         async onModuleInit(): Promise<void> {
                 await this.$connect();
