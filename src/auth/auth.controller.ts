@@ -1,38 +1,35 @@
-import { Body, Controller, Post, UnauthorizedException } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
-import { SignInDto, SignOutDto, SignUpDto } from './dto';
-import { UsersService } from '../users/users.service';
+import { Body, Controller, Post, UseGuards, Request } from '@nestjs/common';
+import { ApiTags, ApiSecurity } from '@nestjs/swagger';
+import { SignInDto, SignUpDto } from './dto';
+import { AuthService } from './auth.service';
+import { UserEntity } from '../users/users.entity';
+import { AuthGuard } from './auth.guard';
+import { SessionEntity } from './session.entity';
 
 @ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
-        constructor(private readonly service: UsersService) {}
+        constructor(private readonly service: AuthService) {}
 
         @Post('sign-up')
-        async signUp(@Body() body: SignUpDto): Promise<string> {
-                const { id } = await this.service.createUser(
-                        body.name,
-                        body.password,
-                );
-                return id;
+        async signUp(@Body() body: SignUpDto): Promise<{ id: string }> {
+                return this.service.signUp(body.name, body.password);
         }
 
         @Post('sign-in')
-        async signIn(@Body() body: SignInDto): Promise<boolean> {
-                const user = await this.service.checkIfUserExists(
-                        body.name,
-                        body.password,
-                );
-
-                if (!user) {
-                        throw new UnauthorizedException();
-                }
-
-                return user;
+        async signIn(
+                @Body() body: SignInDto,
+        ): Promise<{ user: UserEntity; sessionId: string }> {
+                return this.service.signIn(body.name, body.password);
         }
 
+        @UseGuards(AuthGuard)
+        @ApiSecurity('bearer')
         @Post('sign-out')
-        signOut(@Body() body: SignOutDto): Promise<boolean> {
-                return Promise.resolve(true);
+        async signOut(
+                @Request() request: Request & { session: SessionEntity },
+        ): Promise<{ success: boolean }> {
+                await this.service.signOut(request.session.id);
+                return { success: true };
         }
 }

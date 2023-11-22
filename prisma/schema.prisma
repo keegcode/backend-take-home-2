@@ -15,4 +15,13 @@ model User {
   name String @unique
   password String
   salt String
+  sessions Session[]
+}
+
+model Session {
+  id String @id
+  user User @relation(references: [id], fields: [userId])
+  userId String @db.Uuid
+  createdAt DateTime @default(now())
+  expiresAt DateTime
 }

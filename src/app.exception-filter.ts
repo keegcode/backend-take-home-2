@@ -8,6 +8,7 @@ import {
 import { Request, Response } from 'express';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { UserAlreadyExistsException } from './users/user-already-exists.exception';
+import { InvalidCredentialsException } from './auth/invalid-credentials.exception';
 
 @Catch()
 export class AppExceptionFilter implements ExceptionFilter {
@@ -16,7 +17,18 @@ export class AppExceptionFilter implements ExceptionFilter {
                 const response = ctx.getResponse<Response>();
                 const request = ctx.getRequest<Request>();
 
-                Logger.error(exception);
+                Logger.error(
+                        JSON.stringify({
+                                body: request.body,
+                                url: request.url,
+                                error: exception.message,
+                                status:
+                                        exception instanceof HttpException
+                                                ? exception.getStatus()
+                                                : null,
+                                stack: exception.stack,
+                        }),
+                );
 
                 if (exception instanceof HttpException) {
                         const status = exception.getStatus();
@@ -41,6 +53,16 @@ export class AppExceptionFilter implements ExceptionFilter {
                 if (exception instanceof UserAlreadyExistsException) {
                         response.status(400).json({
                                 statusCode: 400,
+                                timestamp: new Date().toISOString(),
+                                path: request.url,
+                                message: exception.message,
+                        });
+                        return;
+                }
+
+                if (exception instanceof InvalidCredentialsException) {
+                        response.status(401).json({
+                                statusCode: 401,
                                 timestamp: new Date().toISOString(),
                                 path: request.url,
                                 message: exception.message,

@@ -10,20 +10,19 @@ export class UsersService {
         ) {}
 
         async createUser(name: string, password: string): Promise<UserEntity> {
-                const duplicateExists =
-                        await this.usersRepository.checkIfUserExists(name);
+                const duplicate = await this.usersRepository.getUser(name);
 
-                if (duplicateExists) {
+                if (duplicate) {
                         throw new UserAlreadyExistsException(name);
                 }
 
                 return this.usersRepository.createUser(name, password);
         }
 
-        async checkIfUserExists(
+        async getUser(
                 name: string,
                 password: string,
-        ): Promise<boolean> {
-                return this.usersRepository.checkIfUserExists(name, password);
+        ): Promise<UserEntity | null> {
+                return this.usersRepository.getUser(name, password);
         }
 }

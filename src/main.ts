@@ -11,6 +11,10 @@ async function bootstrap(): Promise<void> {
 
         const config = new DocumentBuilder()
                 .setTitle('Impulse Test API')
+                .addSecurity('bearer', {
+                        type: 'http',
+                        scheme: 'bearer',
+                })
                 .build();
 
         const document = SwaggerModule.createDocument(app, config);
