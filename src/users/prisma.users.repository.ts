@@ -41,10 +41,13 @@ export class PrismaUsersRepository
                 }
 
                 if (password?.length) {
-                        const passwordsEqual = this.comparePasswords(password, {
-                                hash: user.password,
-                                salt: user.salt,
-                        });
+                        const passwordsEqual = await this.comparePasswords(
+                                password,
+                                {
+                                        hash: user.password,
+                                        salt: user.salt,
+                                },
+                        );
                         return passwordsEqual
                                 ? { id: user.id, name: user.name }
                                 : null;
