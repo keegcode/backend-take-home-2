@@ -6,7 +6,7 @@ import { AppExceptionFilter } from './app.exception-filter';
 
 async function bootstrap(): Promise<void> {
         const app = await NestFactory.create(AppModule);
-        app.useGlobalPipes(new ValidationPipe());
+        app.useGlobalPipes(new ValidationPipe({ forbidUnknownValues: true }));
         app.useGlobalFilters(new AppExceptionFilter());
 
         const config = new DocumentBuilder()

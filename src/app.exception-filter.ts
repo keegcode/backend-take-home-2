@@ -29,19 +29,12 @@ export class AppExceptionFilter implements ExceptionFilter {
                                                 ? exception.getStatus()
                                                 : null,
                                 stack: exception.stack,
+                                response:
+                                        exception instanceof HttpException
+                                                ? exception.getResponse()
+                                                : null,
                         }),
                 );
-
-                if (exception instanceof HttpException) {
-                        const status = exception.getStatus();
-                        response.status(status).json({
-                                statusCode: status,
-                                timestamp: new Date().toISOString(),
-                                path: request.url,
-                                message: exception.message,
-                        });
-                        return;
-                }
 
                 if (exception instanceof PrismaClientKnownRequestError) {
                         response.status(400).json({
@@ -65,6 +58,17 @@ export class AppExceptionFilter implements ExceptionFilter {
                 if (exception instanceof InvalidCredentialsException) {
                         response.status(401).json({
                                 statusCode: 401,
+                                timestamp: new Date().toISOString(),
+                                path: request.url,
+                                message: exception.message,
+                        });
+                        return;
+                }
+
+                if (exception instanceof HttpException) {
+                        const status = exception.getStatus();
+                        response.status(status).json({
+                                statusCode: status,
                                 timestamp: new Date().toISOString(),
                                 path: request.url,
                                 message: exception.message,

@@ -1,4 +1,9 @@
-import { IsString, MaxLength, MinLength } from 'class-validator';
+import {
+        IsString,
+        MaxLength,
+        MinLength,
+        IsStrongPassword,
+} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class SignInDto {
@@ -11,6 +16,12 @@ export class SignInDto {
         @ApiProperty({ type: String })
         @IsString()
         @MaxLength(32)
-        @MinLength(8)
+        @IsStrongPassword({
+                minSymbols: 1,
+                minLowercase: 1,
+                minNumbers: 1,
+                minUppercase: 1,
+                minLength: 8,
+        })
         password: string;
 }
