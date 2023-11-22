@@ -1,17 +1,24 @@
 import { Module } from '@nestjs/common';
-import { UsersModule } from '../users/users.module';
-import { AuthController } from './auth.controller';
-import { PassportModule } from '@nestjs/passport';
-import { AuthService } from './auth.service';
-import { PrismaSessionsRepository } from './prisma.sessions.repository';
+import { AuthController } from './api/auth.controller';
+import { AuthService } from './domain/auth.service';
+import { PrismaSessionsRepository } from './infrastructure/prisma.sessions.repository';
+import { PrismaUsersRepository } from './infrastructure/prisma.users.repository';
 
 const sessionsRepositoryProvider = {
         provide: 'SessionsRepository',
         useClass: PrismaSessionsRepository,
 };
+
+const usersRepositoryProvider = {
+        provide: 'UsersRepository',
+        useClass: PrismaUsersRepository,
+};
 @Module({
-        imports: [UsersModule, PassportModule],
-        providers: [AuthService, sessionsRepositoryProvider],
+        providers: [
+                AuthService,
+                sessionsRepositoryProvider,
+                usersRepositoryProvider,
+        ],
         controllers: [AuthController],
         exports: [AuthService],
 })

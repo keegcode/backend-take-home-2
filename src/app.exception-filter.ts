@@ -7,15 +7,17 @@ import {
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
-import { UserAlreadyExistsException } from './users/user-already-exists.exception';
-import { InvalidCredentialsException } from './auth/invalid-credentials.exception';
+import { InvalidCredentialsException } from './auth/domain/invalid-credentials.exception';
+import { UserAlreadyExistsException } from './auth/domain/user-already-exists.exception';
+import { SessionEntity } from './auth/domain/session.entity';
 
 @Catch()
 export class AppExceptionFilter implements ExceptionFilter {
         catch(exception: Error, host: ArgumentsHost): void {
                 const ctx = host.switchToHttp();
                 const response = ctx.getResponse<Response>();
-                const request = ctx.getRequest<Request>();
+                const request: Request & { session?: SessionEntity } =
+                        ctx.getRequest<Request>();
 
                 Logger.error(
                         JSON.stringify({

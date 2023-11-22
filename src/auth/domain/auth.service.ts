@@ -1,17 +1,19 @@
 import { SessionsRepository } from './sessions.repository';
 import { Inject, Injectable } from '@nestjs/common';
-import { UsersService } from '../users/users.service';
-import { UserEntity } from '../users/users.entity';
 import { InvalidCredentialsException } from './invalid-credentials.exception';
 import { SessionEntity } from './session.entity';
 import { ConfigService } from '@nestjs/config';
+import { UserEntity } from './user.entity';
+import { UsersRepository } from './users.repository';
+import { UserAlreadyExistsException } from './user-already-exists.exception';
 
 @Injectable()
 export class AuthService {
         constructor(
                 @Inject('SessionsRepository')
                 private readonly sessionsRepository: SessionsRepository,
-                private readonly usersService: UsersService,
+                @Inject('UsersRepository')
+                private readonly usersRepository: UsersRepository,
                 private readonly config: ConfigService,
         ) {}
 
@@ -27,10 +29,8 @@ export class AuthService {
                 name: string,
                 password: string,
         ): Promise<{ id: string; sessionId: string }> {
-                const { id } = await this.usersService.createUser(
-                        name,
-                        password,
-                );
+                const { id } = await this.createUser(name, password);
+
                 const sessionId = await this.sessionsRepository.createSession(
                         id,
                         this.getSessionExpirationDate(),
@@ -43,7 +43,7 @@ export class AuthService {
                 name: string,
                 password: string,
         ): Promise<{ user: UserEntity; sessionId: string }> {
-                const user = await this.usersService.getUser(name, password);
+                const user = await this.usersRepository.getUser(name, password);
 
                 if (!user) {
                         throw new InvalidCredentialsException();
@@ -72,6 +72,19 @@ export class AuthService {
 
         async getValidSessionById(id: string): Promise<SessionEntity | null> {
                 return this.sessionsRepository.getValidSessionById(id);
+        }
+
+        private async createUser(
+                name: string,
+                password: string,
+        ): Promise<UserEntity> {
+                const duplicate = await this.usersRepository.getUser(name);
+
+                if (duplicate) {
+                        throw new UserAlreadyExistsException();
+                }
+
+                return this.usersRepository.createUser(name, password);
         }
 
         private getSessionExpirationDate(): Date {

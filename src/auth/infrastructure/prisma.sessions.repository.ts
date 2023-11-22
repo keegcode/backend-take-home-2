@@ -1,7 +1,7 @@
 import { PrismaClient } from '@prisma/client';
-import { SessionsRepository } from './sessions.repository';
+import { SessionsRepository } from '../domain/sessions.repository';
 import { Injectable, OnModuleInit } from '@nestjs/common';
-import { SessionEntity } from './session.entity';
+import { SessionEntity } from '../domain/session.entity';
 import { createHash, randomBytes } from 'crypto';
 import { ConfigService } from '@nestjs/config';
 

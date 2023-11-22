@@ -1,9 +1,9 @@
 import { PrismaClient } from '@prisma/client';
-import { UserEntity } from './users.entity';
 import { Injectable, OnModuleInit } from '@nestjs/common';
-import { UsersRepository } from './users.repository';
+import { UsersRepository } from '../domain/users.repository';
 import { randomBytes, scrypt } from 'crypto';
 import { promisify } from 'util';
+import { UserEntity } from '../domain/user.entity';
 
 @Injectable()
 export class PrismaUsersRepository
