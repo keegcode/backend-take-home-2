@@ -5,9 +5,8 @@ import {
         HttpException,
         Logger,
 } from '@nestjs/common';
-import e, { Request, Response } from 'express';
+import { Request, Response } from 'express';
 import { SessionEntity } from './auth/domain/session.entity';
-import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { UserAlreadyExistsException } from './auth/domain/user-already-exists.exception';
 import { InvalidCredentialsException } from './auth/domain/invalid-credentials.exception';
 
