@@ -1,7 +1,12 @@
-import { IsString, IsStrongPassword, MaxLength, MinLength } from 'class-validator';
+import {
+        IsString,
+        IsStrongPassword,
+        MaxLength,
+        MinLength,
+} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
-export class SignUpDto {
+export class SignUpRequest {
         @ApiProperty({ type: String })
         @IsString()
         @MaxLength(32)
@@ -19,4 +24,9 @@ export class SignUpDto {
                 minLength: 8,
         })
         password: string;
+}
+
+export class SignUpResponse {
+        @ApiProperty({ type: String, format: 'uuid' })
+        id: string;
 }

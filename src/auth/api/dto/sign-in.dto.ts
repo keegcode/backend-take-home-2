@@ -5,8 +5,9 @@ import {
         IsStrongPassword,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import { UserEntity } from '../../domain/user.entity';
 
-export class SignInDto {
+export class SignInRequest {
         @ApiProperty({ type: String })
         @IsString()
         @MaxLength(32)
@@ -24,4 +25,12 @@ export class SignInDto {
                 minLength: 8,
         })
         password: string;
+}
+
+export class SignInResponse {
+        @ApiProperty({ type: UserEntity })
+        user: UserEntity;
+
+        @ApiProperty({ type: String, format: 'uuid' })
+        sessionId: string;
 }
