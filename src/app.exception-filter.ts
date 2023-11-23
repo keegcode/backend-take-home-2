@@ -5,11 +5,11 @@ import {
         HttpException,
         Logger,
 } from '@nestjs/common';
-import { Request, Response } from 'express';
-import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
-import { InvalidCredentialsException } from './auth/domain/invalid-credentials.exception';
-import { UserAlreadyExistsException } from './auth/domain/user-already-exists.exception';
+import e, { Request, Response } from 'express';
 import { SessionEntity } from './auth/domain/session.entity';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
+import { UserAlreadyExistsException } from './auth/domain/user-already-exists.exception';
+import { InvalidCredentialsException } from './auth/domain/invalid-credentials.exception';
 
 @Catch()
 export class AppExceptionFilter implements ExceptionFilter {
@@ -19,56 +19,11 @@ export class AppExceptionFilter implements ExceptionFilter {
                 const request: Request & { session?: SessionEntity } =
                         ctx.getRequest<Request>();
 
-                Logger.error(
-                        JSON.stringify({
-                                body: request.body,
-                                url: request.url,
-                                error: exception.message,
-                                status:
-                                        exception instanceof HttpException
-                                                ? exception.getStatus()
-                                                : null,
-                                stack: exception.stack,
-                                response:
-                                        exception instanceof HttpException
-                                                ? exception.getResponse()
-                                                : null,
-                        }),
-                );
-
-                if (exception instanceof PrismaClientKnownRequestError) {
-                        response.status(400).json({
-                                statusCode: 400,
-                                timestamp: new Date().toISOString(),
-                                path: request.url,
-                        });
-                        return;
-                }
-
-                if (exception instanceof UserAlreadyExistsException) {
-                        response.status(400).json({
-                                statusCode: 400,
-                                timestamp: new Date().toISOString(),
-                                path: request.url,
-                                message: exception.message,
-                        });
-                        return;
-                }
-
-                if (exception instanceof InvalidCredentialsException) {
-                        response.status(401).json({
-                                statusCode: 401,
-                                timestamp: new Date().toISOString(),
-                                path: request.url,
-                                message: exception.message,
-                        });
-                        return;
-                }
+                Logger.error(this.stringifyException(exception, request));
 
                 if (exception instanceof HttpException) {
-                        const status = exception.getStatus();
-                        response.status(status).json({
-                                statusCode: status,
+                        response.status(exception.getStatus()).json({
+                                statusCode: exception.getStatus(),
                                 timestamp: new Date().toISOString(),
                                 path: request.url,
                                 message: exception.message,
@@ -76,10 +31,52 @@ export class AppExceptionFilter implements ExceptionFilter {
                         return;
                 }
 
-                response.status(500).json({
-                        statusCode: 500,
+                const httpException = this.getHttpException(exception);
+
+                response.status(httpException.statusCode).json({
+                        ...httpException,
                         timestamp: new Date().toISOString(),
                         path: request.url,
+                });
+        }
+
+        private getHttpException(exception: Error): {
+                statusCode: number;
+                message?: string;
+        } {
+                switch (exception.constructor.name) {
+                        case UserAlreadyExistsException.name:
+                                return {
+                                        statusCode: 400,
+                                        message: exception.message,
+                                };
+                        case InvalidCredentialsException.name:
+                                return {
+                                        statusCode: 400,
+                                        message: exception.message,
+                                };
+                        default:
+                                return { statusCode: 500 };
+                }
+        }
+
+        private stringifyException(
+                exception: Error,
+                request: Request & { session?: SessionEntity },
+        ): string {
+                return JSON.stringify({
+                        body: request.body,
+                        url: request.url,
+                        error: exception.message,
+                        status:
+                                exception instanceof HttpException
+                                        ? exception.getStatus()
+                                        : null,
+                        stack: exception.stack,
+                        response:
+                                exception instanceof HttpException
+                                        ? exception.getResponse()
+                                        : null,
                 });
         }
 }
